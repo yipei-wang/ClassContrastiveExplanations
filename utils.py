@@ -1,5 +1,6 @@
 import torch
 import torchvision
+import matplotlib.pyplot as plt
 
 def get_n_params(model):
     n_param = 0

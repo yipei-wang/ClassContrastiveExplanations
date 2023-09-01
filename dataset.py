@@ -23,12 +23,30 @@ class CUB(Dataset):
         self.train_test = train_test
         
         if self.normalization:
-            self.transform = transforms.Compose(
-                [transforms.Resize((self.image_size, self.image_size)),
-                 transforms.ToTensor(),
-                 transforms.Normalize(mean = [0.485, 0.456, 0.406], 
-                                      std = [0.229, 0.224, 0.225])
-                ])
+            if self.train_test == "train":
+                self.transform = transforms.Compose(
+                    [transforms.RandomHorizontalFlip(),  # Flip the image with probability=0.5
+                     transforms.RandomVerticalFlip(),  # Flip image vertically with probability=0.5
+                     transforms.RandomRotation(30),  # Rotate image by a random angle between -30 and +30 degrees
+                     transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),  # Randomly change brightness, contrast, and saturation
+                     transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # Randomly translate the image
+                     transforms.RandomResizedCrop(224, scale=(0.7, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=2),  # Crop and resize
+                     transforms.RandomPerspective(distortion_scale=0.2, p=0.5, interpolation=3, fill=0),  # Random perspective transformation
+                     transforms.RandomGrayscale(p=0.2),  # Convert to grayscale with probability=0.2
+                     transforms.RandomApply([transforms.GaussianBlur(3, sigma=(0.1, 2.0))], p=0.2),  # Apply Gaussian blur with probability=0.2
+                     transforms.ToTensor(),  # Convert to tensor
+                     transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                          std=[0.229, 0.224, 0.225])  # Normalize
+                    ])
+            else:
+                self.transform = transforms.Compose(
+                    [transforms.Resize((self.image_size, self.image_size)),
+                     transforms.ToTensor(),
+                     transforms.Normalize(mean = [0.485, 0.456, 0.406], 
+                                          std = [0.229, 0.224, 0.225])
+                    ])
+
+        
         else:
             self.transform = transforms.Compose(
                 [transforms.Resize((self.image_size, self.image_size)),
@@ -36,7 +54,7 @@ class CUB(Dataset):
                  transforms.Normalize(mean = [0., 0., 0.], 
                                       std = [1., 1., 1.])
                 ])
-        
+
         
         # attribute list: a list of 312 attributes
         with open(os.path.join(self.data_root, 'attributes.txt'), 'r')  as f:
