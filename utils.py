@@ -170,4 +170,4 @@ def get_samples(testset,model,threshold=0.3):
                       f"2nd as {prob.sort()[1][-2].item()}",
                       ": {:.4f}".format(prob.sort()[0][-2].item()))
                 samples.append([n, prob.sort()[1][-1].item(), prob.sort()[1][-2].item()])
-    return 
+    return samples

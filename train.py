@@ -97,6 +97,8 @@ def train(
 
 if __name__ == '__main__':
     
+    if not os.path.exists('model'):
+        os.mkdir('model')
     if options.model_name == 'vgg':
         model = torchvision.models.vgg16_bn(pretrained = True).to(device)
         model.classifier[6] = nn.Linear(4096, 200).to(device)

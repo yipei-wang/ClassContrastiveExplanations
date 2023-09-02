@@ -2,7 +2,7 @@ import argparse
 parser = argparse.ArgumentParser(description = "Template")
 
 parser.add_argument("-gpu", "--GPU_index", default = 0, type = int, help = "gpu index")
-parser.add_argument("-thre", "--threshold", default = 0.3, type = float, help = "the threshold for the second possible class")
+parser.add_argument("-thre", "--threshold", default = 0.4, type = float, help = "the threshold for the second possible class")
 parser.add_argument("-model", "--model_name", default = "vgg", type = str, help = "the name of the model")
 parser.add_argument("--negative", default=False, action="store_true")
 parser.add_argument("-root", "--data_root", type = str, help = "the root of the dataset")
@@ -21,7 +21,7 @@ torch.manual_seed(0)
 device=torch.device(f'cuda:{options.GPU_index}')
 
 
-def experiment(samples, testset, model, index=0, mode='positive'):
+def experiment(samples, testset, model, index=1, mode='positive'):
     OriginalProb = []
     ContrastiveProb = []
     Prob = []
@@ -39,16 +39,10 @@ def experiment(samples, testset, model, index=0, mode='positive'):
             pred = model(image)[0]
             prob = torch.softmax(pred, dim = 0)
 
+        saliency_y = get_saliency(model, image, t, softmax=False)
+        saliency_p = get_saliency(model, image, t, softmax=True)
 
-        blurred = GaussianBlur(image)
-
-        p_blurred = image.detach().clone()
-        n_blurred = image.detach().clone()
-
-        gc_y = get_saliency(model, image, t, softmax=False)
-        gc_p = get_saliency(model, image, t, softmax=True)
-
-        y_images, p_images = equal_blur(image, gc_y, gc_p, mode=mode)
+        y_images, p_images = equal_blur(image, saliency_y, saliency_p, mode=mode)
 
 
         with torch.no_grad():
@@ -80,15 +74,15 @@ if __name__ == '__main__':
     samples = get_samples(testset,model,options.threshold)
 
     if not options.negative:
-        OriginalProb, ContrastiveProb, Prob = experiment(samples, testset, model, index=0, mode='positive')
-        mode == 'positive'
+        OriginalProb, ContrastiveProb, Prob = experiment(samples, testset, model, index=1, mode='positive')
+        mode = 'positive'
         desire = 'higher'
     else:
-        OriginalProb, ContrastiveProb, Prob = experiment(samples, testset, model, index=0, mode='negative')
-        mode == 'negative'
+        OriginalProb, ContrastiveProb, Prob = experiment(samples, testset, model, index=1, mode='negative')
+        mode = 'negative'
         desire = 'lower'
 
     print("The mode is %s, so the relative score should be the %s the better"%(mode, desire))
     print("Original\t\t r=%.4f"%((OriginalProb[:,0]/OriginalProb.sum(1)).mean()))
     print("Contrastive Blurred\t r=%.4f"%((ContrastiveProb[:,0]/ContrastiveProb.sum(1)).mean()))
-    print("Blurred\t\t r=%.4f"%((Prob[:,0]/Prob.sum(1)).mean()))
+    print("Blurred\t\t\t r=%.4f"%((Prob[:,0]/Prob.sum(1)).mean()))
