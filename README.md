@@ -34,7 +34,7 @@ For academic usage, please consider citing
 
 **Tutorial**
 
-Please have the [CUB-200-2011]{https://www.vision.caltech.edu/datasets/cub_200_2011/} bird dataset ready. 
+Please have the [CUB-200-2011](https://www.vision.caltech.edu/datasets/cub_200_2011/) bird dataset ready. 
 For finetuning the model on the dataset, please run
 <pre>
   python train.py --root path_of_the_dataset
